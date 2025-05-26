@@ -22,7 +22,7 @@ class BackpropOptimizer(AOptimizer):
         train_loader = DataLoader(TensorDataset(X_train, y_train))
 
         opt = optim.Adam(self._model.parameters(), lr=0.01)
-        for epoch in range(15):
+        for epoch in range(21):
             for xb, yb in train_loader:
                 opt.zero_grad()
                 out = self._model(xb)

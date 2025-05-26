@@ -44,9 +44,13 @@ for concrete_strategy in [backprop_opt, crystal_opt]:
     start = time.perf_counter()
 
     opt.strategy = concrete_strategy
+
+    acc = opt.evaluate(X_test=X_test, y_test=y_test)
+    print(f"Accuracy Before Train with {concrete_strategy.get_name()}: {acc:.2%}")
+
     opt.optimize(X_train=X_train, y_train=y_train)
     acc = opt.evaluate(X_test=X_test, y_test=y_test)
-    print(f"Accuracy with {concrete_strategy.get_name()}: {acc:.2%}")
+    print(f"Accuracy After Train with {concrete_strategy.get_name()}: {acc:.2%}")
 
     end = time.perf_counter()
     elapsed = end - start
