@@ -3,20 +3,20 @@ import numpy as np
 
 class Optimizer:
 
-    def __init__(self, optimizer: AOptimizer):
-        self._optimizer = optimizer
+    def __init__(self, strategy: AOptimizer = None):
+        self._strategy = strategy
 
     @property
-    def optimizer(self) -> AOptimizer:
-        return self._optimizer
+    def strategy(self) -> AOptimizer:
+        return self._strategy
 
-    @optimizer.setter
-    def optimizer(self, optimizer: AOptimizer):
-        self._optimizer = optimizer
+    @strategy.setter
+    def strategy(self, strategy: AOptimizer):
+        self._strategy = strategy
 
     def optimize(self, X_train: np.ndarray, y_train: np.ndarray):
-        self._optimizer.optimize(X_train, y_train)
+        self._strategy.optimize(X_train, y_train)
 
     def evaluate(self, X_test: np.ndarray, y_test: np.ndarray):
-        return self._optimizer.evaluate(X_test, y_test)
+        return self._strategy.evaluate(X_test, y_test)
 

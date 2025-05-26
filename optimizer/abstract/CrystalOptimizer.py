@@ -1,6 +1,4 @@
-import numpy as np
-import torch
-import torch.nn as nn
+import numpy as np, torch
 
 from optimizer.abstract.AOptimizer import AOptimizer
 
@@ -12,13 +10,6 @@ class CrystalOptimizer(AOptimizer):
     @staticmethod
     def get_name():
         return "Crystal"
-
-    def _compute_fitnesses(self, crystals: np.array, eval_function: object) -> (np.array, float, int):
-        fitnesses = np.apply_along_axis(eval_function, 1, crystals)
-        best_fitness_index = np.argmin(fitnesses)
-        best_fitness_value = fitnesses[best_fitness_index]
-        fitnesses = fitnesses.reshape(-1, 1)
-        return fitnesses, best_fitness_value, best_fitness_index
 
     def __compute_r_values(self, n: int = 2) -> (float, float, float):
         rnd_values = n * np.random.rand(4)
@@ -89,21 +80,41 @@ class CrystalOptimizer(AOptimizer):
         best_value = fitnesses[best_index, 0]
         return fitnesses, best_value, best_index
 
-
-
     def optimize(self, X_train: np.ndarray, y_train: np.ndarray):
         print(f"Start optimization for {CrystalOptimizer.get_name()} Strategy")
 
         X_train = torch.tensor(X_train, dtype=torch.float32)
         y_train = torch.tensor(y_train, dtype=torch.long)
+
         lower_bound, upper_bound = -2, 2
-        nb_crystal = 3
-        nb_iterations = 3
+        nb_crystal = 15
+        nb_iterations = 60
         crystals = self._create_crystals(lb=lower_bound, ub=upper_bound, nb_crystal=nb_crystal)
         fitnesses, best_fitness, best_index = self._evaluate_crystals(crystals=crystals, X_train=X_train, y_train=y_train)
         Cr_b = crystals[best_index]
-        historical_loss = [best_fitness]
-        historical_crystal = [list(Cr_b)]
-        print(f"Current Best Crystal Loss: {best_fitness}")
-        for _ in range(0, nb_iterations):
-            pass
+        for i in range(0, nb_iterations):
+            for crystal_idx in range(0, nb_crystal):
+                new_crystals = np.array([])
+                Cr_main = self._take_random_crystals(crystals=crystals, nb_random_crystals_to_take=1, nb_crystal=nb_crystal).flatten()
+                Cr_old = crystals[crystal_idx]
+                Fc = self._take_random_crystals(crystals=crystals, nb_crystal=nb_crystal).mean(axis=0)
+                r, r_1, r_2, r_3 = self.__compute_r_values()
+                Cr_new = self._compute_simple_cubicle(Cr_old=Cr_old, Cr_main=Cr_main, r=r)
+                new_crystals = np.hstack((new_crystals, Cr_new))
+                Cr_new = self._compute_cubicle_with_best_crystals(Cr_old=Cr_old, Cr_main=Cr_main, Cr_b=Cr_b, r_1=r_1, r_2=r_2)
+                new_crystals = np.vstack((new_crystals, Cr_new))
+                Cr_new = self._compute_cubicle_with_mean_crystals(Cr_old=Cr_old, Cr_main=Cr_main, Fc=Fc, r_1=r_1, r_2=r_2)
+                new_crystals = np.vstack((new_crystals, Cr_new))
+                Cr_new = self._compute_cubicle_with_best_and_mean_crystals(Cr_old=Cr_old, Cr_main=Cr_main, Cr_b=Cr_b, Fc=Fc, r_1=r_1, r_2=r_2, r_3=r_3)
+                new_crystals = np.vstack((new_crystals, Cr_new))
+                new_crystals = np.clip(new_crystals, a_min=lower_bound, a_max=upper_bound)
+                new_crystal_fitnesses, new_crystal_best_fitness, new_crystal_best_index = self._evaluate_crystals(crystals=new_crystals, X_train=X_train, y_train=y_train)
+                current_crystal_fitness = fitnesses[crystal_idx][0]
+                if self._is_new_fitness_better(old_crystal_fitness=current_crystal_fitness, new_crystal_fitness=new_crystal_best_fitness):
+                    crystals[crystal_idx] = new_crystals[new_crystal_best_index]
+
+            fitnesses, best_fitness, best_index = self._evaluate_crystals(crystals=crystals, X_train=X_train, y_train=y_train)
+            Cr_b = crystals[best_index]
+            if i % 10 == 0:
+                print(f"Iter {i}. Current Best Crystal Fitness Is {best_fitness}")
+            self._assign_weights(crystal=Cr_b)

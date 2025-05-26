@@ -1,7 +1,5 @@
-import torch.optim as optim
-import torch
+import torch.optim as optim, torch, numpy as np
 from torch.utils.data import TensorDataset, DataLoader
-import numpy as np
 
 from optimizer.abstract.AOptimizer import AOptimizer
 

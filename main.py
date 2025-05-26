@@ -1,9 +1,7 @@
-import torch
-import torch.nn as nn
+import torch, torch.nn as nn, os, time
 from copy import deepcopy
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
-import os
 
 from SimpleNet import SimpleNet
 from optimizer.Optimizer import Optimizer
@@ -40,13 +38,16 @@ loss = nn.CrossEntropyLoss()
 
 backprop_opt = BackpropOptimizer(nn_model=nn_model_backp, loss_function=loss)
 crystal_opt = CrystalOptimizer(nn_model=nn_model_crystal, loss_function=loss)
-opt = Optimizer(optimizer=backprop_opt)
+opt = Optimizer()
 
-# opt.optimize(X_train=X_train, y_train=y_train)
-# acc = opt.evaluate(X_test=X_test, y_test=y_test)
-# print(f"Accuracy with BackProp.: {acc:.2%}")
+for concrete_strategy in [backprop_opt, crystal_opt]:
+    start = time.perf_counter()
 
-opt.optimizer = crystal_opt
-opt.optimize(X_train=X_train, y_train=y_train)
-# acc = opt.evaluate(X_test=X_test, y_test=y_test)
-# print(f"Accuracy with Crystal: {acc:.2%}")
+    opt.strategy = concrete_strategy
+    opt.optimize(X_train=X_train, y_train=y_train)
+    acc = opt.evaluate(X_test=X_test, y_test=y_test)
+    print(f"Accuracy with {concrete_strategy.get_name()}: {acc:.2%}")
+
+    end = time.perf_counter()
+    elapsed = end - start
+    print(f"Elapsed: {elapsed:.4f}s")
