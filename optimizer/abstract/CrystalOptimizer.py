@@ -48,7 +48,7 @@ class CrystalOptimizer(AOptimizer):
         weights = torch.cat(weights).detach().cpu().numpy()
         return weights
 
-    def _create_crystals(self, lb: int, ub: int, nb_crystal: int) -> (np.array, int, int):
+    def _create_crystals(self, lb: int, ub: int, nb_crystal: int) -> np.array:
         base_weights = self._flat_weights()
         dim = base_weights.size
         random_crystals = np.random.uniform(low=lb, high=ub, size=(nb_crystal - 1, dim))
