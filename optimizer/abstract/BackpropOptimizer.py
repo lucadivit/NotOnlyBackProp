@@ -13,9 +13,7 @@ class BackpropOptimizer(AOptimizer):
     def get_name():
         return "Backprop"
 
-    def optimize(self, X_train: np.ndarray, y_train: np.ndarray) -> None:
-
-        print(f"Start optimization for {BackpropOptimizer.get_name()} Strategy")
+    def _optimize_impl(self, X_train: np.ndarray, y_train: np.ndarray) -> None:
 
         X_train_t = torch.tensor(X_train, dtype=torch.float32)
         y_train_t = torch.tensor(y_train, dtype=torch.long)
@@ -32,6 +30,3 @@ class BackpropOptimizer(AOptimizer):
 
             if epoch % 10 == 0:
                 print(f"Epoch {epoch}, Loss: {loss.item():.4f}")
-
-        acc = self.evaluate(X_test=X_train, y_test=y_train)
-        print(f"Accuracy on Train Set: {acc:.2%}")

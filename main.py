@@ -7,6 +7,7 @@ from SimpleNet import SimpleNet
 from optimizer.Optimizer import Optimizer
 from optimizer.abstract.BackpropOptimizer import BackpropOptimizer
 from optimizer.abstract.CrystalOptimizer import CrystalOptimizer
+from optimizer.abstract.ChernobylOptimizer import ChernobylOptimizer
 
 
 def create_networks(weights: str = "weights.pth"):
@@ -20,9 +21,11 @@ def create_networks(weights: str = "weights.pth"):
 
     nn_model_backp = SimpleNet()
     nn_model_crystal = SimpleNet()
+    nn_model_chernobyl = SimpleNet()
     nn_model_backp.load_state_dict(deepcopy(initial_weights))
     nn_model_crystal.load_state_dict(deepcopy(initial_weights))
-    return nn_model_backp, nn_model_crystal
+    nn_model_chernobyl.load_state_dict(deepcopy(initial_weights))
+    return nn_model_backp, nn_model_crystal, nn_model_chernobyl
 
 def get_data():
     iris = load_iris()
@@ -32,15 +35,16 @@ def get_data():
     return X_train, X_test, y_train, y_test
 
 
-nn_model_backp, nn_model_crystal = create_networks()
+nn_model_backp, nn_model_crystal, nn_model_chernobyl = create_networks()
 X_train, X_test, y_train, y_test = get_data()
 loss = nn.CrossEntropyLoss()
 
 backprop_opt = BackpropOptimizer(nn_model=nn_model_backp, loss_function=loss)
 crystal_opt = CrystalOptimizer(nn_model=nn_model_crystal, loss_function=loss)
+chernobyl_opt = ChernobylOptimizer(nn_model=nn_model_chernobyl, loss_function=loss)
 opt = Optimizer()
 
-for concrete_strategy in [backprop_opt, crystal_opt]:
+for concrete_strategy in [backprop_opt, crystal_opt, chernobyl_opt]:
     start = time.perf_counter()
 
     opt.strategy = concrete_strategy
@@ -55,3 +59,4 @@ for concrete_strategy in [backprop_opt, crystal_opt]:
     end = time.perf_counter()
     elapsed = end - start
     print(f"Elapsed: {elapsed:.4f}s")
+    print("-" * 50)

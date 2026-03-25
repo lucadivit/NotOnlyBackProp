@@ -26,14 +26,20 @@ class AOptimizer(ABC):
     def loss_function(self, loss_function: loss._WeightedLoss) -> None:
         self._loss_function = loss_function
 
-    @abstractmethod
-    def optimize(self, X_train: np.ndarray, y_train: np.ndarray) -> None:
-        raise NotImplementedError
-
     @staticmethod
     @abstractmethod
     def get_name() -> str:
         raise NotImplementedError
+
+    @abstractmethod
+    def _optimize_impl(self, X_train: np.ndarray, y_train: np.ndarray) -> None:
+        pass
+
+    def optimize(self, X_train: np.ndarray, y_train: np.ndarray) -> None:
+        print(f"Start optimization for {self.get_name()} Strategy")
+        self._optimize_impl(X_train, y_train)
+        acc = self.evaluate(X_test=X_train, y_test=y_train)
+        print(f"Accuracy on Train Set: {acc:.2%}")
 
     def evaluate(self, X_test: np.ndarray, y_test: np.ndarray) -> float:
         X_test = torch.tensor(X_test, dtype=torch.float32)
